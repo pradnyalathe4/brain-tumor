@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict - NeuroScan AI</title>
+    <meta name="api-base-url" content="http://localhost:8000">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
+                            400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
+                            800: '#1e40af', 900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-medical-600 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                </div>
+                <span class="text-xl font-bold text-gray-900">NeuroScan AI</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="dashboard.html" class="text-gray-600 hover:text-medical-600 font-medium">Dashboard</a>
+                <button onclick="logout()" class="text-gray-600 hover:text-red-600 font-medium">Sign Out</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">MRI Tumor Analysis</h1>
+            <p class="text-gray-500 mt-1">Upload an MRI scan for AI-powered tumor detection</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Upload Section -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">1. Select Patient</h2>
+                <select id="patientSelect" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medical-500 focus:border-medical-500 mb-6">
+                    <option value="">Select a patient...</option>
+                </select>
+
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">2. Upload MRI Image</h2>
+                <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-medical-500 hover:bg-medical-50 transition-all cursor-pointer">
+                    <input type="file" id="fileInput" accept="image/png,image/jpeg" class="hidden" aria-label="Upload MRI image">
+                    
+                    <div id="uploadPlaceholder">
+                        <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <p class="text-gray-600 mb-2">Drag & drop MRI image here</p>
+                        <p class="text-gray-400 text-sm">or <span class="text-medical-600 font-medium">browse files</span></p>
+                        <p class="text-gray-400 text-sm mt-2">PNG, JPG • Max 10MB</p>
+                    </div>
+                    
+                    <div id="previewContainer" class="hidden">
+                        <img id="previewImg" class="max-h-64 mx-auto rounded-lg mb-4" alt="MRI Preview">
+                        <button type="button" onclick="removeFile(event)" class="text-red-600 hover:text-red-800 text-sm font-medium">Remove Image</button>
+                    </div>
+                </div>
+
+                <div id="validationErrors" class="mt-4 hidden">
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm"></div>
+                </div>
+
+                <div id="uploadProgress" class="mt-4 hidden">
+                    <div class="flex justify-between text-sm text-gray-600 mb-1">
+                        <span>Analyzing...</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div id="progressBar" class="bg-medical-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <button id="analyzeBtn" onclick="analyzeScan()" disabled class="mt-6 w-full bg-medical-600 hover:bg-medical-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                    Analyze MRI Scan
+                </button>
+            </div>
+
+            <!-- Results Section -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">3. Analysis Results</h2>
+                
+                <div id="resultContainer" class="text-center py-12">
+                    <svg class="w-20 h-20 text-gray-200 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                    <p class="text-gray-400">Upload an MRI scan to see analysis results</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/upload.js"></script>
+    <script>
+        // Check auth
+        const token = sessionStorage.getItem('neuroscan_token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        // Load patients on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const patients = await fetchApiPatients();
+                const select = document.getElementById('patientSelect');
+                select.innerHTML = '<option value="">Select a patient...</option>' + 
+                    patients.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+                
+                if (patients.length === 0) {
+                    showToast('No patients found. Please add a patient first.', 'error');
+                }
+            } catch (error) {
+                showToast('Failed to load patients', 'error');
+            }
+        });
+
+        // Patient select change handler
+        document.getElementById('patientSelect').addEventListener('change', () => {
+            updateAnalyzeButton();
+        });
+    </script>
+</body>
+</html>
