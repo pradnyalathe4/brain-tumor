@@ -44,10 +44,9 @@ def load_model():
 
 def preprocess_image(image_bytes: bytes) -> np.ndarray:
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB").resize((224, 224))
-    arr = np.array(img, dtype=np.float32) / 255.0
-    mean = np.array([0.485, 0.456, 0.406])
-    std = np.array([0.229, 0.224, 0.225])
-    arr = (arr - mean) / std
+    arr = np.array(img, dtype=np.float32)
+    # Note: EfficientNet models in Keras include a Rescaling layer internally, 
+    # so we should provide pixel values in the [0, 255] range.
     return np.expand_dims(arr, axis=0)
 
 def predict(image_bytes: bytes) -> dict:

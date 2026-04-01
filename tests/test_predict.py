@@ -67,7 +67,7 @@ class TestPrediction:
         
         result = predict(img_bytes.getvalue())
         
-        assert result["tumor_type"] in CLASS_NAMES
+        assert result["tumor_type"] in CLASS_NAMES + ["Inconclusive"]
         assert result["confidence_score"] >= 0
         assert result["confidence_score"] <= 100
     

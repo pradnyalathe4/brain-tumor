@@ -73,8 +73,12 @@ async def predict(
                 detail="Patient not found"
             )
     
-    # Save file
-    ext = ALLOWED_MAGIC.get(bytes(content[:3]), "jpg")
+    # Determine file extension based on magic bytes
+    ext = "jpg"
+    for magic, extension in ALLOWED_MAGIC.items():
+        if content.startswith(magic):
+            ext = extension
+            break
     filename = f"{uuid.uuid4()}.{ext}"
     filepath = os.path.join(settings.UPLOAD_DIR, filename)
     
@@ -90,7 +94,7 @@ async def predict(
     
     # Save scan to database
     scan = Scan(
-        patient_id=patient_id or "",
+        patient_id=patient_id if patient_id else None,
         doctor_id=doctor.id,
         image_path=filepath,
         tumor_detected=result["tumor_detected"],
@@ -103,11 +107,7 @@ async def predict(
     session.commit()
     session.refresh(scan)
     
-    # Run prediction
-    result = ml_predict(content)
-    
-    print(f"ML predict result keys: {result.keys()}")
-    print(f"is_inconclusive value: {result.get('is_inconclusive')}")
+    # Result is already in 'result' from earlier call
     
     response_data = {
         "scan_id": scan.id,
