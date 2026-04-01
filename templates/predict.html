@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}New Scan - NeuroScan AI{% endblock %}
+
+{% set current_page = 'predict' %}
+{% set page_title = 'New Scan' %}
+
+{% block content %}
+<div class="predict-container">
+    <div class="upload-section">
+        <div class="card">
+            <div class="card-header">
+                <h3>Upload MRI Scan</h3>
+            </div>
+            <div class="card-body">
+                <div id="drop-zone" class="drop-zone">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <p>Drop MRI scan here or click to upload</p>
+                    <span class="drop-hint">Supports PNG, JPG (max 10MB)</span>
+                    <input type="file" id="file-input" accept="image/*" hidden>
+                </div>
+                <div id="preview-container" class="preview-container" style="display: none;">
+                    <img id="image-preview" src="" alt="Preview">
+                    <button class="btn btn-outline btn-sm" onclick="clearPreview()">Remove</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3>Patient Selection</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="patient-select">Select Patient (optional)</label>
+                    <select id="patient-select" class="input-field">
+                        <option value="">-- No patient --</option>
+                    </select>
+                </div>
+                <button id="analyze-btn" class="btn btn-primary" disabled>
+                    <span class="btn-text">Analyze Scan</span>
+                    <span class="spinner"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="result-section" class="result-section" style="display: none;">
+        <div class="card result-card">
+            <div class="card-header">
+                <h3>Analysis Results</h3>
+            </div>
+            <div class="card-body">
+                <div class="result-header">
+                    <span id="tumor-badge" class="badge badge-large tag-glioma">Glioma</span>
+                    <span id="confidence-display" class="confidence-score">95.5%</span>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div id="confidence-bar" class="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="result-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Tumor Location:</span>
+                        <span id="location-display" class="detail-value">-</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Analysis Notes:</span>
+                        <p id="notes-display" class="detail-value">-</p>
+                    </div>
+                </div>
+                
+                <div class="probability-section">
+                    <h4>All Probabilities</h4>
+                    <div id="probability-bars"></div>
+                </div>
+                
+                <div class="result-actions">
+                    <a id="view-scan-link" href="#" class="btn btn-primary">View Full Scan</a>
+                    <button onclick="resetPredict()" class="btn btn-outline">Analyze Another</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="loading-overlay" class="loading-overlay" style="display: none;">
+    <div class="spinner-large"></div>
+    <p>Analyzing MRI scan...</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/predict.js"></script>
+{% endblock %}

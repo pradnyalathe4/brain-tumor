@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Patient Details - NeuroScan AI{% endblock %}
+
+{% set current_page = 'patients' %}
+{% set page_title = 'Patient Details' %}
+
+{% block content %}
+<div class="patient-header">
+    <div class="patient-info-card">
+        <h2 id="patient-name">Loading...</h2>
+        <div class="patient-meta">
+            <span><strong>DOB:</strong> <span id="patient-dob">-</span></span>
+            <span><strong>Gender:</strong> <span id="patient-gender">-</span></span>
+            <span><strong>Email:</strong> <span id="patient-email">-</span></span>
+        </div>
+        <div class="patient-notes">
+            <strong>Notes:</strong> <span id="patient-notes">None</span>
+        </div>
+    </div>
+    <div class="patient-actions">
+        <button class="btn btn-primary" onclick="window.location.href='/predict?patient_id={{ patient_id }}'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            New Scan
+        </button>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Scan History</h3>
+    </div>
+    <div class="card-body">
+        <table class="table" id="scans-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Tumor Type</th>
+                    <th>Confidence</th>
+                    <th>Location</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="scans-body">
+                <tr><td colspan="5" class="text-center text-muted">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const patientId = "{{ patient_id }}";
+async function loadPatient() {
+    try {
+        const res = await apiFetch('/api/patients/' + patientId);
+        if (!res.ok) throw new Error('Patient not found');
+        const patient = await res.json();
+        
+        document.getElementById('patient-name').textContent = patient.name;
+        document.getElementById('patient-dob').textContent = patient.date_of_birth;
+        document.getElementById('patient-gender').textContent = patient.gender;
+        document.getElementById('patient-email').textContent = patient.contact_email || 'N/A';
+        document.getElementById('patient-notes').textContent = patient.notes || 'None';
+        
+        loadScans();
+    } catch (err) {
+        showAlert('Failed to load patient', 'error');
+    }
+}
+
+async function loadScans() {
+    try {
+        const res = await apiFetch('/api/scans/patient/' + patientId);
+        const scans = await res.json();
+        
+        const tbody = document.getElementById('scans-body');
+        if (scans.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No scans yet</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = scans.map(scan => `
+            <tr>
+                <td>${formatDate(scan.created_at)}</td>
+                <td><span class="badge tag-${scan.tumor_type.toLowerCase().replace(' ', '-')}">${scan.tumor_type}</span></td>
+                <td>${scan.confidence_score}%</td>
+                <td>${scan.tumor_location || '-'}</td>
+                <td><a href="/scans/${scan.id}" class="btn btn-outline btn-sm">View</a></td>
+            </tr>
+        `).join('');
+    } catch (err) {
+        showAlert('Failed to load scans', 'error');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadPatient);
+</script>
+{% endblock %}

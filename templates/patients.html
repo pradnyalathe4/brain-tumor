@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Patients - NeuroScan AI{% endblock %}
+
+{% set current_page = 'patients' %}
+{% set page_title = 'Patients' %}
+
+{% block content %}
+<div class="toolbar">
+    <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search-patients" placeholder="Search patients...">
+    </div>
+    <button class="btn btn-primary" onclick="openModal('patient-modal')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Patient
+    </button>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <table class="table" id="patients-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Gender</th>
+                    <th>Scans</th>
+                    <th>Last Scan</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="patients-body">
+                <tr><td colspan="6" class="text-center text-muted">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="patient-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add New Patient</h3>
+            <button class="modal-close" onclick="closeModal('patient-modal')">&times;</button>
+        </div>
+        <form id="patient-form">
+            <div class="form-group">
+                <label for="patient-name">Full Name</label>
+                <input type="text" id="patient-name" class="input-field" required>
+            </div>
+            <div class="form-group">
+                <label for="patient-dob">Date of Birth</label>
+                <input type="date" id="patient-dob" class="input-field" required>
+            </div>
+            <div class="form-group">
+                <label for="patient-gender">Gender</label>
+                <select id="patient-gender" class="input-field" required>
+                    <option value="">Select gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="patient-email">Contact Email (optional)</label>
+                <input type="email" id="patient-email" class="input-field">
+            </div>
+            <div class="form-group">
+                <label for="patient-notes">Notes (optional)</label>
+                <textarea id="patient-notes" class="input-field" rows="3"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" onclick="closeModal('patient-modal')">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Patient</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/patients.js"></script>
+{% endblock %}
